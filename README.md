@@ -1,5 +1,5 @@
 # DeviceAccessViewController
 授权管理页面
 
-![](/Users/zhangchao/github/DeviceAccessViewController/IMG_1620.PNG)
+![](https://raw.githubusercontent.com/zsy78191/DeviceAccessViewController/master/IMG_1620.PNG)
 
