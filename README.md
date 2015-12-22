@@ -7,8 +7,14 @@
 
 ##使用方法
 
-请在Application的代理文件中，引用`#import "DeviceAccessViewController.h"`
+随处可用
 
+```
+DeviceAccessViewController* dvc = [[DeviceAccessViewController alloc] initWithNibName:@"DeviceAccessViewController" bundle:[NSBundle mainBundle]];
+[self.navigationController pushViewController:dvc animated:YES];
+```
+
+请在Application的代理文件中，引用`#import "DeviceAccessViewController.h"`
 然后添加如下代码通知DeviceAccessViewController处理注册通知的回调。
 
 ```
