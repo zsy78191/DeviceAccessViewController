@@ -274,14 +274,18 @@ NSString* const UesrDefaultNotificationAuthorizedKey = @"UesrDefaultNotification
 
 - (void)settings:(id)sender
 {
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0) {
+       [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+    }
 }
 
 - (void)authorize:(id)sender
 {
     if (sender == self.button_notification) {
         if (_notificationNeedSettings) {
-            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+              if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0) {
+                  [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+              }
         }
         else
         {
@@ -315,7 +319,9 @@ NSString* const UesrDefaultNotificationAuthorizedKey = @"UesrDefaultNotification
             }];
         }
         else if([DAAccessManager photoAccesStatus] == PHAuthorizationStatusDenied) {
-            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+              if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0) {
+                  [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+              }
         }
         else
         {
@@ -331,7 +337,9 @@ NSString* const UesrDefaultNotificationAuthorizedKey = @"UesrDefaultNotification
         }
         else if([DAAccessManager positionAuthorizationStatus] == kCLAuthorizationStatusDenied)
         {
-            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+              if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0) {
+                  [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+              }
         }
         else{
             
@@ -372,31 +380,54 @@ NSString* const UesrDefaultNotificationAuthorizedKey = @"UesrDefaultNotification
 + (BOOL)remoteNotificationEnabled
 {
     UIApplication* application = [UIApplication sharedApplication];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 8.0) {
+        UIRemoteNotificationType type = [application enabledRemoteNotificationTypes];
+        return type != UIRemoteNotificationTypeNone;
+    }
     return [application isRegisteredForRemoteNotifications];
 }
 
 + (void)registRemoteNotification
 {
     UIApplication* application = [UIApplication sharedApplication];
-    [application registerForRemoteNotifications];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 8.0) {
+        [application registerForRemoteNotificationTypes:UIRemoteNotificationTypeAlert|UIRemoteNotificationTypeSound|UIRemoteNotificationTypeBadge];
+    }
+    else{
+        [application registerForRemoteNotifications];
+    }
 }
 
 + (BOOL)authorizedNotification
 {
     UIApplication* application = [UIApplication sharedApplication];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 8.0) {
+        UIRemoteNotificationType type = [application enabledRemoteNotificationTypes];
+        return type != UIRemoteNotificationTypeNone;
+    }
     return ([application currentUserNotificationSettings]);
 }
 
 + (UIUserNotificationType)notificationType
 {
     UIApplication* application = [UIApplication sharedApplication];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 8.0) {
+        UIRemoteNotificationType type = [application enabledRemoteNotificationTypes];
+        return (UIUserNotificationType)type;
+    }
     return  [application currentUserNotificationSettings].types;
 }
 
 + (void)registNotificationSettings:(UIUserNotificationType)type
 {
-    UIUserNotificationSettings *setting = [UIUserNotificationSettings settingsForTypes:type categories:nil];
-    [[UIApplication sharedApplication] registerUserNotificationSettings:setting];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 8.0) {
+        [[UIApplication sharedApplication] registerForRemoteNotificationTypes:UIRemoteNotificationTypeAlert|UIRemoteNotificationTypeSound|UIRemoteNotificationTypeBadge];
+    }
+    else
+    {
+        UIUserNotificationSettings *setting = [UIUserNotificationSettings settingsForTypes:type categories:nil];
+        [[UIApplication sharedApplication] registerUserNotificationSettings:setting];
+    }
 }
 
 + (void)unregistNotificationSettings
@@ -406,16 +437,33 @@ NSString* const UesrDefaultNotificationAuthorizedKey = @"UesrDefaultNotification
 
 + (PHAuthorizationStatus)photoAccesStatus
 {
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 8.0) {
+        return (PHAuthorizationStatus)[ALAssetsLibrary authorizationStatus];
+    }
     return [PHPhotoLibrary authorizationStatus];
 }
 
 + (void)photoAuthorization:(void (^)(PHAuthorizationStatus status))result
 {
-    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
-        if (result) {
-            result(status);
-        }
-    }];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 8.0) {
+//        [ALAssetsLibrary]
+        [[[ALAssetsLibrary alloc] init] enumerateGroupsWithTypes:ALAssetsGroupAll usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
+            if (result) {
+                result(3);
+            }
+        } failureBlock:^(NSError *error) {
+            if (result) {
+                result(1);
+            }
+        }];
+    }
+    else{
+        [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+            if (result) {
+                result(status);
+            }
+        }];
+    }
 }
 
 + (CLAuthorizationStatus)positionAuthorizationStatus
@@ -425,9 +473,19 @@ NSString* const UesrDefaultNotificationAuthorizedKey = @"UesrDefaultNotification
 
 + (void)authorizedPosition:(CLLocationManager *)manager
 {
-    [manager requestAlwaysAuthorization];
+    if ([manager respondsToSelector:@selector(requestAlwaysAuthorization)]) {
+      [manager requestAlwaysAuthorization];
+    }
+    else{
+        NSLog(@"requestAlwaysAuthorization -- 不支持8.0以下的系统");
+    }
+    
 }
 
 @end
+
+
+
+
 
 

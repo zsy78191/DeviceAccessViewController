@@ -5,6 +5,10 @@
 
 ![](https://raw.githubusercontent.com/zsy78191/DeviceAccessViewController/master/IMG_1620.PNG)
 
+##6.12更新autolayout，支持到7.0
+
+7.0中不能使用跳转到Settings的功能。
+
 ##使用方法
 
 随处可用
